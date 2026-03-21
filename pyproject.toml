@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools ~= 80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "untis"
+version = "0.0.1"
+description = ""
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [
+    {name = "IceWizard7", email = "mrrioes.dc@gmail.com"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "requests~=2.32.5",
+    "colorama~=0.4.6",
+    "playwright~=1.58.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/IceWizard7/untis"
+Documentation = "https://github.com/IceWizard7/untis"
+Source = "https://github.com/IceWizard7/untis"
+Issues = "https://github.com/IceWizard7/untis/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools.package-data]
+untis = []
+
+[tool.setuptools]
+include = ["docs/*", "examples/*", "LICENSE", "README.md"]
