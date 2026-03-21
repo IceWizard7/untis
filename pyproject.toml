@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools ~= 80.9.0"]
+requires = ["setuptools ~= 80.9.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -34,9 +34,7 @@ Issues = "https://github.com/IceWizard7/untis/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
+include = ["untis*"]
 
 [tool.setuptools.package-data]
-untis = []
-
-[tool.setuptools]
-include = ["docs/*", "examples/*", "LICENSE", "README.md"]
+untis = ["docs/*", "examples/*", "*.md"]
