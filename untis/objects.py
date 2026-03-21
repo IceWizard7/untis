@@ -55,8 +55,8 @@ class BaseEntity:
 class Subject(BaseEntity):
     @property
     def color(self) -> tuple[int, int, int]:
-        if (self.name, self.long_name, self.entity_id) in config.subject_to_color.keys():
-            return config.subject_to_color[(self.name, self.long_name, self.entity_id)]
+        if (self.name, self.long_name, self.entity_id) in my_config.subject_to_color.keys():
+            return my_config.subject_to_color[(self.name, self.long_name, self.entity_id)]
         return 255, 255, 255
 
 
@@ -71,20 +71,20 @@ class Room(BaseEntity):
 class Teacher(BaseEntity):
     @property
     def subjects(self) -> tuple[str, ...] | str:
-        if self.entity_id in config.teacher_mapping.keys():
-            return config.teacher_mapping[self.entity_id][2]
+        if self.entity_id in my_config.teacher_mapping.keys():
+            return my_config.teacher_mapping[self.entity_id][2]
         return str(self.entity_id)
 
     @staticmethod
     def _get_name(raw_teacher_id: int) -> str:
-        if raw_teacher_id in config.teacher_mapping.keys():
-            return config.teacher_mapping[raw_teacher_id][1]
+        if raw_teacher_id in my_config.teacher_mapping.keys():
+            return my_config.teacher_mapping[raw_teacher_id][1]
         return str(raw_teacher_id)
 
     @staticmethod
     def _get_long_name(raw_teacher_id: int) -> str:
-        if raw_teacher_id in config.teacher_mapping.keys():
-            return config.teacher_mapping[raw_teacher_id][0]
+        if raw_teacher_id in my_config.teacher_mapping.keys():
+            return my_config.teacher_mapping[raw_teacher_id][0]
         return str(raw_teacher_id)
 
     @classmethod
@@ -104,8 +104,8 @@ class Teacher(BaseEntity):
             raw_teacher_name: str
     ) -> typing.Self:
         raw_teacher_id: int = 0
-        for tid in config.teacher_mapping.keys():
-            if config.teacher_mapping[tid][1] == raw_teacher_name:
+        for tid in my_config.teacher_mapping.keys():
+            if my_config.teacher_mapping[tid][1] == raw_teacher_name:
                 raw_teacher_id = tid
                 break
 
@@ -121,8 +121,8 @@ class Teacher(BaseEntity):
             raw_teacher_long_name: str
     ) -> typing.Self:
         raw_teacher_id: int = 0
-        for tid in config.teacher_mapping.keys():
-            if config.teacher_mapping[tid][0] == raw_teacher_long_name:
+        for tid in my_config.teacher_mapping.keys():
+            if my_config.teacher_mapping[tid][0] == raw_teacher_long_name:
                 raw_teacher_id = tid
                 break
 
@@ -256,7 +256,7 @@ class Period:
     def _subjects_str(self) -> str:
         subjects_str: str = ', '.join(subject.name for subject in self.subjects)
         if subjects_str == '':
-            return config.unknown_element_symbol
+            return my_config.unknown_element_symbol
         return subjects_str
 
     def _rooms_str(self, regular_plan: bool) -> str:
@@ -267,7 +267,7 @@ class Period:
             rooms_str = original_rooms_str
 
         if rooms_str == '':
-            return config.unknown_element_symbol
+            return my_config.unknown_element_symbol
 
         return rooms_str
 
@@ -279,7 +279,7 @@ class Period:
             teachers_str = original_teachers_str
 
         if teachers_str == '':
-            return config.unknown_element_symbol
+            return my_config.unknown_element_symbol
 
         return teachers_str
 
@@ -300,7 +300,7 @@ class Period:
         ))
 
         if klassen_str == '':
-            return config.unknown_element_symbol
+            return my_config.unknown_element_symbol
 
         return klassen_str
 
@@ -491,7 +491,7 @@ class TimeTable:
         """Keep any period that personal attends (modify TimeTable in place)"""
         personal_teachers: set[str]
         personal_subjects: set[str]
-        personal_teachers, personal_subjects = config.personal_timetable_entries.get(name, (set(), set()))
+        personal_teachers, personal_subjects = my_config.personal_timetable_entries.get(name, (set(), set()))
         self._periods = [
             p for p in self._periods
             if personal_teachers & {t.name for t in p.teachers + p.original_teachers}
@@ -664,17 +664,17 @@ class TimeTable:
     ) -> tuple[str, str]:
         if isinstance(featuring_object, Class):
             return (
-                f'{config.class_timetable} {featuring_object.name}',
+                f'{my_config.class_timetable} {featuring_object.name}',
                 f'({start_date.strftime("%d.%m.%Y")} - {end_date.strftime("%d.%m.%Y")})'
             )
         elif isinstance(featuring_object, Room):
             return (
-                f'{config.room_timetable} {featuring_object.name}',
+                f'{my_config.room_timetable} {featuring_object.name}',
                 f'({start_date.strftime("%d.%m.%Y")} - {end_date.strftime("%d.%m.%Y")})'
             )
         elif isinstance(featuring_object, Teacher):
             return (
-                f'{config.teacher_timetable} {featuring_object.name} ({featuring_object.long_name})',
+                f'{my_config.teacher_timetable} {featuring_object.name} ({featuring_object.long_name})',
                 f'({start_date.strftime("%d.%m.%Y")} - {end_date.strftime("%d.%m.%Y")})'
             )
         return '', ''
@@ -724,16 +724,16 @@ class TimeTable:
                         original_teachers: str = ', '.join([teacher.name for teacher in period.original_teachers])
 
                         if teachers == '':
-                            teachers = f'[{config.unknown_element_extended_text}]'
+                            teachers = f'[{my_config.unknown_element_extended_text}]'
 
                         if original_teachers == '':
                             original_teachers = teachers
 
                         if long_subject_name == '':
-                            long_subject_name = config.some_hour
+                            long_subject_name = my_config.some_hour
 
                         if room_name == '':
-                            room_name = config.unknown_element_extended_text
+                            room_name = my_config.unknown_element_extended_text
 
                         if original_room_name == '':
                             original_room_name = room_name
@@ -744,7 +744,7 @@ class TimeTable:
                             f'{long_subject_name} ({room_name}, {teachers})', str(period.raw_period_code)
                         )
                         cancelled_info: str = (f'{long_subject_name} ({room_name}, {teachers})'
-                                               f' {config.is_cancelled}: {period.start}')
+                                               f' {my_config.is_cancelled}: {period.start}')
                         irregular_info: str = (
                             f'{long_subject_name} ({original_room_name}, {original_teachers})'
                             f' -> {long_subject_name} ({room_name}, {teachers}) : {period.start}'
@@ -777,19 +777,19 @@ class TimeTable:
 
             if len(cancelled_hours_one_time[dates]) == 1:  # 1 Hour / date
                 if lesson_1_code == 'irregular':
-                    special_hours.append(f'{lesson_1_string} {config.is_irregular}: {dates[0]}')
+                    special_hours.append(f'{lesson_1_string} {my_config.is_irregular}: {dates[0]}')
                 else:
                     special_hours.append(lesson_1_special_string)
 
             elif len(cancelled_hours_one_time[dates]) == 2:  # 2 Hours / date
                 if lesson_1_code == 'cancelled' and lesson_2_code == 'irregular':
-                    special_hours.append(f'{config.instead} {lesson_1_string}: {lesson_2_string}: {dates[0]}')
+                    special_hours.append(f'{my_config.instead} {lesson_1_string}: {lesson_2_string}: {dates[0]}')
                 elif lesson_2_code == 'cancelled' and lesson_1_code == 'irregular':
-                    special_hours.append(f'{config.instead} {lesson_2_string}: {lesson_1_string}: {dates[0]}')
+                    special_hours.append(f'{my_config.instead} {lesson_2_string}: {lesson_1_string}: {dates[0]}')
                 elif lesson_1_code == 'cancelled' and lesson_2_code == 'cancelled':
-                    special_hours.append(f'{lesson_1_string} & {lesson_2_string} {config.are_cancelled}: {dates[0]}')
+                    special_hours.append(f'{lesson_1_string} & {lesson_2_string} {my_config.are_cancelled}: {dates[0]}')
                 else:
-                    special_hours.append(f'{lesson_1_string} & {lesson_2_string} {config.are_irregular}: {dates[0]}')
+                    special_hours.append(f'{lesson_1_string} & {lesson_2_string} {my_config.are_irregular}: {dates[0]}')
             else:  # > 2 Hours / date
                 all_cancelled: bool = all(
                     entry[1] != 'irregular'
@@ -797,9 +797,9 @@ class TimeTable:
                 )
 
                 if all_cancelled:
-                    special_hours.append(f'{config.multiple_lessons_cancelled}: {dates[0]}')
+                    special_hours.append(f'{my_config.multiple_lessons_cancelled}: {dates[0]}')
                 else:
-                    special_hours.append(f'{config.multiple_lessons_irregular}: {dates[0]}')
+                    special_hours.append(f'{my_config.multiple_lessons_irregular}: {dates[0]}')
 
         return special_hours
 
@@ -824,11 +824,11 @@ class TimeTable:
 
         final_hours: dict[str, dict[str, list[Period]]] = {}
 
-        for weekday in config.weekday_name_mapping.keys():
+        for weekday in my_config.weekday_name_mapping.keys():
             if weekday in ['Saturday', 'Sunday']:
                 continue
-            if config.weekday_name_mapping[weekday] not in final_hours.keys():
-                final_hours[config.weekday_name_mapping[weekday]] = {}
+            if my_config.weekday_name_mapping[weekday] not in final_hours.keys():
+                final_hours[my_config.weekday_name_mapping[weekday]] = {}
             for period in self._periods:
                 if period.start.strftime('%A') != weekday:
                     continue
@@ -840,25 +840,27 @@ class TimeTable:
                 # Convert lesson time ranges to datetime ranges in tuple form
                 time_lesson_ranges: list[tuple[datetime.time, datetime.time]] = [
                     (
-                        datetime.datetime.strptime(time_range.split(' - ')[0], config.lesson_time_ranges_format).time(),
-                        datetime.datetime.strptime(time_range.split(' - ')[1], config.lesson_time_ranges_format).time()
+                        datetime.datetime.strptime(time_range.split(' - ')[0], my_config.lesson_time_ranges_format)
+                        .time(),
+                        datetime.datetime.strptime(time_range.split(' - ')[1], my_config.lesson_time_ranges_format)
+                        .time()
                     )
-                    for time_range in config.lesson_time_ranges
+                    for time_range in my_config.lesson_time_ranges
                 ]
 
                 for i_start_time, i_end_time in time_lesson_ranges:
                     if period_start_time <= i_start_time <= period_end_time:
                         if period_start_time <= i_end_time <= period_end_time:
-                            time: str = (f'{i_start_time.strftime(config.lesson_time_ranges_format)} - '
-                                         f'{i_end_time.strftime(config.lesson_time_ranges_format)}')
+                            time: str = (f'{i_start_time.strftime(my_config.lesson_time_ranges_format)} - '
+                                         f'{i_end_time.strftime(my_config.lesson_time_ranges_format)}')
 
-                            if time in final_hours[config.weekday_name_mapping[weekday]].keys():
-                                final_hours[config.weekday_name_mapping[weekday]][time].append(period)
+                            if time in final_hours[my_config.weekday_name_mapping[weekday]].keys():
+                                final_hours[my_config.weekday_name_mapping[weekday]][time].append(period)
                             else:
-                                final_hours[config.weekday_name_mapping[weekday]][time] = [period]
+                                final_hours[my_config.weekday_name_mapping[weekday]][time] = [period]
 
         weekdays: list[str] = [
-            config.weekday_name_mapping[weekday] for weekday in config.weekday_name_mapping.keys()
+            my_config.weekday_name_mapping[weekday] for weekday in my_config.weekday_name_mapping.keys()
             if weekday not in ['Saturday', 'Sunday']
         ]
 
@@ -875,7 +877,7 @@ class TimeTable:
             return n
 
         water_mark_bits: str = bin(int(user_id))[2:].rjust(64, '0')
-        base_rgb_value: tuple[int, int, int] = config.table_header_base_rgb
+        base_rgb_value: tuple[int, int, int] = my_config.table_header_base_rgb
 
         # RGB changes:
         # Interpret as 4 bit signed int [-8; +7]
@@ -897,35 +899,35 @@ class TimeTable:
 
         if website and start_date and end_date:
             html: list[str] = [
-                config.timetable_html_header,
+                my_config.timetable_html_header,
                 '<p>',
 
                 f'<a href="?date=0">'
-                f'<button>{config.back}</button></a>',
+                f'<button>{my_config.back}</button></a>',
                 f'<br>',
 
                 f'<a href="?date={(start_date - datetime.timedelta(weeks=1)).strftime("%d-%m-%Y")}">'
-                f'<button>{config.last_week}</button></a>',
+                f'<button>{my_config.last_week}</button></a>',
 
                 f'{" ".join(table_name)}',
 
                 f'<a href="?date={(start_date + datetime.timedelta(weeks=1)).strftime("%d-%m-%Y")}">'
-                f'<button>{config.next_week}</button></a>',
+                f'<button>{my_config.next_week}</button></a>',
 
                 '</p>',
                 '<table border="1" cellspacing="0" cellpadding="5">',
-                f'<tr><th style="background-color: rgb{config.table_header_base_rgb};">{config.time}</th>'
+                f'<tr><th style="background-color: rgb{my_config.table_header_base_rgb};">{my_config.time}</th>'
             ]
 
             for day in weekdays:
-                html.append(f'<th style="background-color: rgb{config.table_header_base_rgb};">{day[:2]}</th>')
+                html.append(f'<th style="background-color: rgb{my_config.table_header_base_rgb};">{day[:2]}</th>')
             html.append('</tr>')
         else:
             html = [
-                config.timetable_html_header,
+                my_config.timetable_html_header,
                 f'<p>{" ".join(table_name)}</p>',
                 '<table border="1" cellspacing="0" cellpadding="5">',
-                f'<tr><th style="background-color: rgb{water_mark_rgb_value[0]};">{config.time}</th>'
+                f'<tr><th style="background-color: rgb{water_mark_rgb_value[0]};">{my_config.time}</th>'
             ]
 
             for count, day in enumerate(weekdays):
@@ -987,7 +989,7 @@ class TimeTable:
         final_hours: dict[str, dict[str, list[Period]]]
         html, weekdays, final_hours = self._html_setup(user_id, website, table_name, start_date, end_date)
 
-        for count, time_range in enumerate(config.lesson_time_ranges):
+        for count, time_range in enumerate(my_config.lesson_time_ranges):
             self.html_add_lesson_time_range(html, count, time_range)
 
             for day in weekdays:
@@ -1118,7 +1120,7 @@ class TimeTable:
 
         html.append('</table>')
 
-        html.append(config.timetable_html_footer)
+        html.append(my_config.timetable_html_footer)
 
         html_content = '\n'.join(html)
 
@@ -1150,7 +1152,7 @@ class TimeTable:
             person_name: str
     ) -> str:
         english_weekday: str = target_date.strftime("%A")
-        german_weekday: str = config.weekday_name_mapping[english_weekday]
+        german_weekday: str = my_config.weekday_name_mapping[english_weekday]
 
         # Initialise final_hours with german_weekday key!
         final_hours: dict[str, dict[str, list[Period]]] = {german_weekday: {}}
@@ -1166,54 +1168,54 @@ class TimeTable:
             # Convert lesson time ranges to datetime ranges in tuple form
             time_lesson_ranges: list[tuple[datetime.time, datetime.time]] = [
                 (
-                    datetime.datetime.strptime(time_range.split(' - ')[0], config.lesson_time_ranges_format).time(),
-                    datetime.datetime.strptime(time_range.split(' - ')[1], config.lesson_time_ranges_format).time()
+                    datetime.datetime.strptime(time_range.split(' - ')[0], my_config.lesson_time_ranges_format).time(),
+                    datetime.datetime.strptime(time_range.split(' - ')[1], my_config.lesson_time_ranges_format).time()
                 )
-                for time_range in config.lesson_time_ranges
+                for time_range in my_config.lesson_time_ranges
             ]
 
             for i_start_time, i_end_time in time_lesson_ranges:
                 if period_start_time <= i_start_time <= period_end_time:
                     if period_start_time <= i_end_time <= period_end_time:
-                        time: str = (f'{i_start_time.strftime(config.lesson_time_ranges_format)} - '
-                                     f'{i_end_time.strftime(config.lesson_time_ranges_format)}')
+                        time: str = (f'{i_start_time.strftime(my_config.lesson_time_ranges_format)} - '
+                                     f'{i_end_time.strftime(my_config.lesson_time_ranges_format)}')
 
                         if time in final_hours[german_weekday].keys():
                             final_hours[german_weekday][time].append(period)
                         else:
                             final_hours[german_weekday][time] = [period]
 
-        rgb_value: tuple[int, int, int] = config.table_header_base_rgb
+        rgb_value: tuple[int, int, int] = my_config.table_header_base_rgb
 
         if target_date == datetime.date.today():
-            rgb_value = config.today_personal_rgb_value
+            rgb_value = my_config.today_personal_rgb_value
 
         html: list[str] = [
-            config.personal_timetable_html_header,
+            my_config.personal_timetable_html_header,
             '<p>',
 
             f'<a href="?date={(target_date - datetime.timedelta(days=1)).strftime("%d-%m-%Y")}">'
-            f'<button>{config.yesterday}</button></a>',
+            f'<button>{my_config.yesterday}</button></a>',
 
-            f'{config.personal_timetable} {person_name} ({target_date.strftime("%d.%m.%Y")})',
+            f'{my_config.personal_timetable} {person_name} ({target_date.strftime("%d.%m.%Y")})',
 
             f'<a href="?date={(target_date + datetime.timedelta(days=1)).strftime("%d-%m-%Y")}">'
-            f'<button>{config.tomorrow}</button></a>',
+            f'<button>{my_config.tomorrow}</button></a>',
 
             '</p>',
             '<p>',
 
             f'<a href="?date={(datetime.datetime.today()).strftime("%d-%m-%Y")}">'
-            f'<button>{config.today}</button></a>',
+            f'<button>{my_config.today}</button></a>',
 
             '</p>',
             '<table border="1" cellspacing="0" cellpadding="5">',
-            f'<tr><th style="background-color: rgb{config.table_header_base_rgb};">{config.time}</th>',
+            f'<tr><th style="background-color: rgb{my_config.table_header_base_rgb};">{my_config.time}</th>',
             f'<th style="background-color: rgb{rgb_value};">{german_weekday[:2]}</th>',
             '<tr>'
         ]
 
-        for count, time_range in enumerate(config.lesson_time_ranges):
+        for count, time_range in enumerate(my_config.lesson_time_ranges):
             self.html_add_lesson_time_range(html, count, time_range)
 
             lessons: list[Period] = final_hours.get(german_weekday, {}).get(time_range, [])
@@ -1320,7 +1322,7 @@ class TimeTable:
 
         html.append('</table>')
 
-        html.append(config.personal_timetable_html_footer)
+        html.append(my_config.personal_timetable_html_footer)
 
         html_content = '\n'.join(html)
 
@@ -1339,7 +1341,7 @@ class TimeTable:
 
         any_two_week_lesson: bool = False
 
-        for count, time_range in enumerate(config.lesson_time_ranges):
+        for count, time_range in enumerate(my_config.lesson_time_ranges):
             self.html_add_lesson_time_range(html, count, time_range)
 
             for day in weekdays:
@@ -1394,7 +1396,7 @@ class TimeTable:
 
                     # Bi-weekly check
                     if self.count_appearances(lesson) == 1:
-                        this_lesson_bi_weekly = f'{config.two_week_abbreviation}<br>'
+                        this_lesson_bi_weekly = f'{my_config.two_week_abbreviation}<br>'
                         any_two_week_lesson = True
 
                     # Render lesson
@@ -1469,9 +1471,9 @@ class TimeTable:
         html.append('</table>')
 
         if any_two_week_lesson:
-            html.append(config.timetable_html_footer_two_week)
+            html.append(my_config.timetable_html_footer_two_week)
 
-        html.append(config.timetable_html_footer)
+        html.append(my_config.timetable_html_footer)
 
         html_content = '\n'.join(html)
 
@@ -2124,7 +2126,7 @@ class Session:
                 if attempt == max_attempts - 1:
                     entry = None
                     error_entry = {
-                        'error': f'{config.unexpected_error}: [{datetime.datetime.now()}]',
+                        'error': f'{my_config.unexpected_error}: [{datetime.datetime.now()}]',
                         'exception': e
                     }
                 else:
@@ -2210,4 +2212,4 @@ class Session:
 
 
 # Configuration
-config: Config = Config()
+my_config: Config = Config()

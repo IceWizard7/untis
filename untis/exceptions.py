@@ -2,7 +2,7 @@ import typing
 
 
 class WebUntisAPIError(Exception):
-    """ Base class for WebUntis API exceptions. Never gets raised directly. """
+    """ Base class for untis-exceptions. Never gets raised directly. """
     def __init__(self, *args: typing.Any) -> None:
         super().__init__(*args)
 

@@ -1,7 +1,23 @@
-## Examples:
+# Configuration
 
 > [!CAUTION]
 > More documentation will follow soon.
+
+## 1. Editing `my_config`
+
+Modify the Configuration using `untis.my_config.* = ...`
+
+For example:
+- `untis.my_config.timetable_html_footer = ...`
+- `untis.my_config.two_week_abbreviation = ...`
+- `untis.my_config.teacher_mapping = ...`
+- ...
+
+## 2. Timetable mappings
+
+See [config.py](../untis/config.py) for more info.
+
+### 2.1 Generating element IDs
 
 ```python
 import typing
@@ -16,16 +32,16 @@ def _return_data_whole_school_year(
 ) -> untis.objects.TimeTable:
     session.log_in(call_id)
 
-    SLEEP_TIME: float = 0.2
-    MAX_THREADS: int = 3
-    MAX_ATTEMPTS: int = 3
+    sleep_time: float = 0.2
+    max_threads: int = 3
+    max_attempts: int = 3
     
-    START_OF_SCHOOL_YEAR_NORMAL_TIMETABLE: datetime.date = datetime.date(2025, 9, 11)  # 4th day
-    END_OF_SCHOOL_YEAR_NORMAL_TIMETABLE: datetime.date = datetime.date(2026, 6, 26)  # Second last week, last day
+    start_of_school_year_normal_timetable: datetime.date = datetime.date(2025, 9, 11)  # 4th day
+    end_of_school_year_normal_timetable: datetime.date = datetime.date(2026, 6, 26)  # Second last week, last day
 
     raw_result: dict[str, str | Exception | dict[str,  untis.objects.TimeTable]] = session.multithreading_result(
-        SLEEP_TIME, MAX_THREADS, 'dummy', START_OF_SCHOOL_YEAR_NORMAL_TIMETABLE, END_OF_SCHOOL_YEAR_NORMAL_TIMETABLE,
-        function_name, False, call_id, True, MAX_ATTEMPTS
+        sleep_time, max_threads, 'dummy', start_of_school_year_normal_timetable, end_of_school_year_normal_timetable,
+        function_name, False, call_id, True, max_attempts
     )
 
     if 'exception' in raw_result:
@@ -101,3 +117,11 @@ def return_all_teacher_ids(session: untis.Session) -> tuple[list[untis.objects.T
 
     return teachers, teacher_info
 ```
+
+## 3. Language specific configuration
+
+See [config.py](../untis/config.py) for more info.
+
+## 4. HTML style configuration
+
+See [config.py](../untis/config.py) for more info.

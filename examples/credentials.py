@@ -3,7 +3,7 @@ import untis
 # Expose Globals
 my_logger = untis.logging.Logger()
 
-my_logger.log_levels([untis.logging.LogLevels.ERROR])
+my_logger.log_levels([untis.logging.LogLevels.WARNING, untis.logging.LogLevels.ERROR])
 
 global_session = untis.objects.Session(
     'global_session', False, None, my_logger,

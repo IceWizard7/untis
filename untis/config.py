@@ -36,7 +36,7 @@ class Config:
         # for the accounts that support it.
 
         # Hint: Generating this is rather tedious, but the first step is getting the IDs.
-        # Read docs/element_ids.md for help.
+        # Read docs/configuration.md for help.
 
         self.subject_to_color: dict[tuple[str, str, int], tuple[int, int, int]] = {}
         # Example:
@@ -50,7 +50,7 @@ class Config:
         # The API technically delivers this, but I'm still uncertain whether this is safe to use.
 
         # Hint: Generating this is rather tedious, but the first step is getting the IDs.
-        # Read docs/element_ids.md for help.
+        # Read docs/configuration.md for help.
 
         # endregion Timetable mapping
 
@@ -293,6 +293,6 @@ class Config:
         # Important for HTML generation:
         # Adapt this to your actual time ranges at your school.
         # Otherwise, the lessons won't be displayed in a correct grid.
-        # All time ranges need to use config.lesson_time_ranges_format format.
+        # All time ranges need to use my_config.lesson_time_ranges_format format.
 
         # endregion HTML style configuration

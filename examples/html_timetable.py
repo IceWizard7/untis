@@ -1,3 +1,4 @@
+import untis
 from credentials import global_session
 import datetime
 
@@ -5,6 +6,12 @@ call_id = global_session.get_unique_uuid()
 global_session.log_in(call_id)
 
 klasse = global_session.get_klasse_by_name('1a')  # Try '1A' alternatively
+
+untis.my_config.timetable_html_footer = f"""
+<p style="text-align:center; font-size:20px; margin-top:10px;">
+  powered by: This is how to edit `my_config`!
+</p>
+"""
 
 today = datetime.date.today()
 monday = today - datetime.timedelta(days=today.weekday())
@@ -18,6 +25,7 @@ table = global_session.timetable_extended(klasse=klasse, start=monday, end=frida
 # f.write(image_result)
 
 # HTML:
-html_result = table.to_html(klasse, 0, False, 'Timetable for 1a', monday, friday)
+table_name: tuple[str, str] = table.get_table_name(klasse, monday, friday)
+html_result = table.to_untis_html(klasse, 0, False, table_name, monday, friday)
 
 print(html_result)
