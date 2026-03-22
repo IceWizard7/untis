@@ -19,7 +19,7 @@ from .config import Config
 class BaseEntity:
     name: str
     long_name: str
-    entity_id: int  # Generic id for any entity
+    entity_id: int
 
     @classmethod
     def from_tuple(cls: type[typing.Self], raw_obj: tuple[str, str, int]) -> typing.Self:
@@ -83,6 +83,42 @@ class Teacher(BaseEntity):
             raw_teacher_long_name: str
     ) -> typing.Self:
         pass
+
+class Department(BaseEntity):
+    pass
+
+
+@dataclasses.dataclass(frozen=True)
+class BaseDateEntity:
+    name: str
+    long_name: str
+    entity_id: int
+    start_date: datetime.date
+    end_date: datetime.date
+
+    @classmethod
+    def from_tuple(
+            cls: type[typing.Self], raw_obj: tuple[str, str, int, datetime.date, datetime.datetime]
+    ) -> typing.Self:
+        pass
+
+    @classmethod
+    def from_dict(cls, data: dict[str, str | int]) -> typing.Self:
+        pass
+
+    def __repr__(self) -> str:
+        pass
+
+    def __str__(self) -> str:
+        pass
+
+
+class Holiday(BaseDateEntity):
+    pass
+
+
+class SchoolYear(BaseDateEntity):
+    pass
 
 
 class Period:
@@ -393,18 +429,13 @@ class Session:
     ) -> None:
         self._username: str = ...
         self._password: str = ...
-
         self._server: str = ...
-
         self._school: str = ...
         self._client: str = ...
-
-        # Internal session tracking
         self._jsessionid: str | None = ...
         self._person_type: int | None = ...
         self._person_id: int | None = ...
         self._klasse_id: int | None = ...
-
         self._active_session_uuids: set[typing.Any] = ...
         self._session_name: str = ...
         self._cache: dict[typing.Any, typing.Any] = ...
@@ -415,10 +446,6 @@ class Session:
     @staticmethod
     def get_unique_uuid() -> uuid.UUID:
         pass
-
-    # ------------------------------------------------------------------
-    # Core JSON-RPC Mechanism
-    # ------------------------------------------------------------------
 
     def _rpc_request(
             self, method: str, params: dict[str, typing.Any] | None = None, retry_on_authentication_error: bool = True,
@@ -442,19 +469,11 @@ class Session:
     ) -> dict[str, typing.Any]:
         pass
 
-    # ------------------------------------------------------------------
-    # Authentication Lifecycle
-    # ------------------------------------------------------------------
-
     def log_in(self, unique_uuid: uuid.UUID) -> None:
         pass
 
     def log_out(self, unique_uuid: uuid.UUID) -> None:
         pass
-
-    # ------------------------------------------------------------------
-    # Caching Mechanism
-    # ------------------------------------------------------------------
 
     def cache_file_last_changed(self) -> float | None:
         pass
@@ -482,35 +501,39 @@ class Session:
 
         pass
 
-    # ------------------------------------------------------------------
-    # Custom Object Parsers
-    # ------------------------------------------------------------------
-
-    @cached_method
     def all_klassen(self) -> list[Class]:
         pass
 
-    @cached_method
     def all_rooms(self) -> list[Room]:
         pass
 
-    @cached_method
+    def all_subjects(self) -> list[Subject]:
+        pass
+
+    def all_departments(self) -> list[Department]:
+        pass
+
+    def all_holidays(self) -> list[Holiday]:
+        pass
+
+    def all_schoolyears(self) -> list[SchoolYear]:
+        pass
+
+    def return_current_year(self) -> SchoolYear:
+        pass
+
     def get_klasse_by_name(self, name: str) -> Class | None:
         pass
 
-    @cached_method
     def get_room_by_name(self, name: str) -> Room | None:
         pass
 
-    @cached_method
     def get_teacher_by_name(self, name: str) -> Teacher | None:
         pass
 
-    @cached_method
     def get_teacher_by_long_name(self, long_name: str) -> Teacher | None:
         pass
 
-    @cached_method
     def timetable_extended(
             self,
             klasse: Class,
@@ -519,86 +542,51 @@ class Session:
     ) -> TimeTable:
         pass
 
-    # ------------------------------------------------------------------
-    # Raw API Implementations
-    # ------------------------------------------------------------------
-
-    @cached_method
-    def departments(self) -> typing.Any:
-        pass
-
-    @cached_method
-    def holidays(self) -> typing.Any:
-        pass
-
-    @cached_method
-    def schoolyears(self) -> list[dict[str, typing.Any]]:
-        pass
-
-    def return_current_year(self) -> dict[str, typing.Any]:
-        pass
-
-    @cached_method
     def subjects(self) -> typing.Any:
         pass
 
-    @cached_method
     def teachers(self) -> typing.Any:
         pass
 
-    @cached_method
     def statusdata(self) -> typing.Any:
         pass
 
-    @cached_method
-    def last_import_time(self) -> typing.Any:
+    def last_import_time(self) -> int:
         pass
 
-    @cached_method
     def substitutions(self, start: datetime.date, end: datetime.date, department_id: int = 0) -> typing.Any:
         pass
 
-    @cached_method
-    def timegrid_units(self) -> typing.Any:
+    def timegrid_units(self) -> list[str]:
         pass
 
-    @cached_method
     def students(self) -> typing.Any:
         pass
 
-    @cached_method
     def exam_types(self) -> typing.Any:
         pass
 
-    @cached_method
     def exams(self, start: datetime.date, end: datetime.date, exam_type_id: int = 0) -> typing.Any:
         pass
 
-    @cached_method
     def timetable_with_absences(self, start: datetime.date, end: datetime.date) -> typing.Any:
         pass
 
-    @cached_method
     def class_reg_events(self, start: datetime.date, end: datetime.date) -> typing.Any:
         pass
 
-    @cached_method
     def class_reg_event_for_id(self, start: datetime.date, end: datetime.date, **type_and_id: typing.Any) -> typing.Any:
         pass
 
-    @cached_method
     def class_reg_categories(self) -> typing.Any:
         pass
 
-    @cached_method
     def class_reg_category_groups(self) -> typing.Any:
         pass
 
-    @cached_method
-    def my_timetable(self, start: datetime.date, end: datetime.date) -> typing.Any:
+    def my_timetable(self, start: datetime.date, end: datetime.date) -> TimeTable:
         pass
 
-    @cached_method
     def _search(self, surname: str, fore_name: str, dob: int = 0, what: int = -1) -> typing.Any:
         pass
 
@@ -607,10 +595,6 @@ class Session:
 
     def get_teacher_from_search(self, surname: str, fore_name: str, dob: int = 0) -> dict[str, str | int]:
         pass
-
-    # ------------------------------------------------------------------
-    # Multithreading / Async Workers
-    # ------------------------------------------------------------------
 
     def _multithread_worker(
             self,

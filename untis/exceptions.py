@@ -11,3 +11,15 @@ class NotAuthenticatedError(WebUntisAPIError):
     """ Not authenticated. """
     def __init__(self, error: typing.Any, *args: typing.Any) -> None:
         super().__init__(error, *args)
+
+
+class NoRightForMethod(WebUntisAPIError):
+    """ No right for method. """
+    def __init__(self, error: typing.Any, method_name: str, *args: typing.Any) -> None:
+        super().__init__(error, method_name, *args)
+
+
+class MethodNotFound(WebUntisAPIError):
+    """ Method not found. """
+    def __init__(self, error: typing.Any, method_name: str, *args: typing.Any) -> None:
+        super().__init__(error, method_name, *args)

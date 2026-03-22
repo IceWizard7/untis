@@ -15,7 +15,7 @@ import pathlib
 import asyncio
 import requests
 
-from .exceptions import NotAuthenticatedError
+from .exceptions import NotAuthenticatedError, NoRightForMethod, MethodNotFound
 from .logging import Logger
 from .config import Config
 
@@ -131,6 +131,66 @@ class Teacher(BaseEntity):
             Teacher._get_long_name(raw_teacher_id),
             raw_teacher_id
         )
+
+
+class Department(BaseEntity):
+    pass
+
+
+@dataclasses.dataclass(frozen=True)
+class BaseDateEntity:
+    name: str
+    long_name: str
+    entity_id: int
+    start_date: datetime.date
+    end_date: datetime.date
+
+    @classmethod
+    def from_tuple(
+            cls: type[typing.Self], raw_obj: tuple[str, str, int, datetime.date, datetime.datetime]
+    ) -> typing.Self:
+        return cls(
+            name=raw_obj[0],
+            long_name=raw_obj[1],
+            entity_id=raw_obj[2],
+            start_date=raw_obj[3],
+            end_date=raw_obj[4],
+        )
+
+    @classmethod
+    def from_dict(cls, data: dict[str, str | int]) -> typing.Self:
+        """
+        Construct from a dict with keys: name, long_name, entity_id
+        """
+        def parse_date(value: typing.Optional[int]) -> typing.Optional[datetime.date]:
+            if value is None:
+                return None
+            return datetime.datetime.strptime(str(value), "%Y%m%d").date()
+
+        return cls(
+            name=typing.cast(str, data["name"]),
+            long_name=typing.cast(str, data["longName"]),
+            entity_id=typing.cast(int, data["id"]),
+            start_date=parse_date(data.get("startDate")),
+            end_date=parse_date(data.get("endDate"))
+        )
+
+    def __repr__(self) -> str:
+        return (
+            f'{self.__class__.__name__}(name={self.name}, long_name={self.long_name},'
+            f' entity_id={self.entity_id}, start_date={self.start_date}, end_date={self.end_date})'
+        )
+
+    def __str__(self) -> str:
+        return repr(self)
+
+
+class Holiday(BaseDateEntity):
+    pass
+
+
+class SchoolYear(BaseDateEntity):
+    pass
 
 
 class Period:
@@ -1704,6 +1764,10 @@ class Session:
                     return result
                 else:
                     raise NotAuthenticatedError(data["error"])
+            elif "no right for " in data["error"].get("message"):
+                raise NoRightForMethod(data["error"], method)
+            elif "Method not found" in data["error"].get("message"):
+                raise MethodNotFound(data["error"], method)
             raise RuntimeError(f"WebUntis API Error ({method}): {data['error']}")
 
         return data.get("result")
@@ -1868,6 +1932,54 @@ class Session:
         }) for r in raw_json]
 
     @cached_method
+    def all_subjects(self) -> list[Subject]:
+        raw_json = self._rpc_request("getSubjects")
+        # Technically we are destroying info here, "alternateName" & "active"
+        return [Subject.from_dict({
+            'name': s.get('name', ''),
+            'longName': s.get('longName', ''),
+            'id': s.get('id', 0)
+        }) for s in raw_json]
+
+    @cached_method
+    def all_departments(self) -> list[Department]:
+        raw_json = self._rpc_request("getDepartments")
+        return [Department.from_dict({
+            'name': d.get('name', ''),
+            'longName': d.get('longName', ''),
+            'id': d.get('id', 0)
+        }) for d in raw_json]
+
+    @cached_method
+    def all_holidays(self) -> list[Holiday]:
+        raw_json = self._rpc_request("getHolidays")
+        return [Holiday.from_dict({
+            'name': h.get('name', ''),
+            'longName': h.get('longName', ''),
+            'id': h.get('id', 0),
+            'startDate': h.get('startDate', None),
+            'endDate': h.get('endDate', None)
+        }) for h in raw_json]
+
+    @cached_method
+    def all_schoolyears(self) -> list[SchoolYear]:
+        raw_json = typing.cast(list[dict[str, typing.Any]], self._rpc_request("getSchoolyears"))
+        return [SchoolYear.from_dict({
+            'name': s.get('name', ''),
+            'longName': s.get('name', ''),
+            'id': s.get('id', 0),
+            'startDate': s.get('startDate', None),
+            'endDate': s.get('endDate', None)
+        }) for s in raw_json]
+
+    def return_current_year(self) -> SchoolYear:
+        years: list[SchoolYear] = self.all_schoolyears()
+        if not years:
+            raise RuntimeError("No school years found")
+        # Assuming the last year in the list or highest ID is current
+        return sorted(years, key=lambda y: y.id)[-1]
+
+    @cached_method
     def get_klasse_by_name(self, name: str) -> Class | None:
         for k in self.all_klassen():
             if k.name == name:
@@ -1919,7 +2031,6 @@ class Session:
         except Exception:
             return TimeTable([])
 
-        # Doing this once at the start of the method is how the official app does it.
         all_su: dict[typing.Any, typing.Any] = {s['id']: s for s in self._rpc_request("getSubjects", {})}
         all_kl: dict[typing.Any, typing.Any] = {k['id']: k for k in self._rpc_request("getKlassen", {})}
         all_ro: dict[typing.Any, typing.Any] = {r['id']: r for r in self._rpc_request("getRooms", {})}
@@ -2005,39 +2116,17 @@ class Session:
     # ------------------------------------------------------------------
 
     @cached_method
-    def departments(self) -> typing.Any:
-        return self._rpc_request("getDepartments")
-
-    @cached_method
-    def holidays(self) -> typing.Any:
-        return self._rpc_request("getHolidays")
-
-    @cached_method
-    def schoolyears(self) -> list[dict[str, typing.Any]]:
-        return typing.cast(list[dict[str, typing.Any]], self._rpc_request("getSchoolyears"))
-
-    def return_current_year(self) -> dict[str, typing.Any]:
-        years: list[dict[str, typing.Any]] = self.schoolyears()
-        if not years:
-            raise RuntimeError("No school years found")
-        # Assuming the last year in the list or highest ID is current
-        return sorted(years, key=lambda y: y.get('id', 0))[-1]
-
-    @cached_method
-    def subjects(self) -> typing.Any:
-        return self._rpc_request("getSubjects")
-
-    @cached_method
     def teachers(self) -> typing.Any:
         return self._rpc_request("getTeachers")
 
     @cached_method
     def statusdata(self) -> typing.Any:
+        # TODO: Update this to use custom objects.
         return self._rpc_request("getStatusData")
 
     @cached_method
-    def last_import_time(self) -> typing.Any:
-        return self._rpc_request("getLatestImportTime")
+    def last_import_time(self) -> int:
+        return typing.cast(int, self._rpc_request("getLatestImportTime"))
 
     @cached_method
     def substitutions(self, start: datetime.date, end: datetime.date, department_id: int = 0) -> typing.Any:
@@ -2045,8 +2134,24 @@ class Session:
         return self._rpc_request("getSubstitutions", params)
 
     @cached_method
-    def timegrid_units(self) -> typing.Any:
-        return self._rpc_request("getTimegridUnits")
+    def timegrid_units(self) -> list[str]:
+        raw_json = self._rpc_request("getTimegridUnits")
+
+        def convert_time(value: typing.Optional[int]) -> str:
+            if value is None:
+                return ""
+            datetime_obj: datetime.time = datetime.datetime.strptime(str(value), "%H%M").time()
+            return datetime_obj.strftime(my_config.html_style_config.lesson_time_ranges_format)
+
+        lesson_time_ranges: list[str] = [
+            f'{convert_time(time_unit.get("startTime"))} - '
+            f'{convert_time(time_unit.get("endTime"))}'
+            for item in raw_json
+            for time_unit_list in item.get('timeUnits')
+            for time_unit in time_unit_list
+        ]
+
+        return lesson_time_ranges
 
     @cached_method
     def students(self) -> typing.Any:
@@ -2087,7 +2192,7 @@ class Session:
         return self._rpc_request("getClassregCategoryGroups")
 
     @cached_method
-    def my_timetable(self, start: datetime.date, end: datetime.date) -> typing.Any:
+    def my_timetable(self, start: datetime.date, end: datetime.date) -> TimeTable:
         if not self._person_id or not self._person_type:
             raise RuntimeError("Person ID or Type not available. Are you logged in?")
 
@@ -2102,7 +2207,93 @@ class Session:
             "showLsNumber": True,
             "showStudentgroup": True
         }
-        return self._rpc_request("getTimetable", {"options": options})
+
+        try:
+            raw_result = self._rpc_request("getTimetable", {"options": options})
+        except Exception:
+            return TimeTable([])
+
+        all_su: dict[typing.Any, typing.Any] = {s['id']: s for s in self._rpc_request("getSubjects", {})}
+        all_kl: dict[typing.Any, typing.Any] = {k['id']: k for k in self._rpc_request("getKlassen", {})}
+        all_ro: dict[typing.Any, typing.Any] = {r['id']: r for r in self._rpc_request("getRooms", {})}
+
+        periods: list[Period] = []
+        for raw_p in raw_result:
+            try:
+                start_dt = datetime.datetime.combine(self._parse_date(raw_p['date']),
+                                                     self._parse_time(raw_p['startTime']))
+                end_dt = datetime.datetime.combine(self._parse_date(raw_p['date']),
+                                                   self._parse_time(raw_p['endTime']))
+
+                subjects = []
+                for s in raw_p.get('su', []):
+                    master_su = all_su.get(s['id'], {})
+                    subjects.append(Subject.from_dict({
+                        'name': master_su.get('name', ''),
+                        'longName': master_su.get('longName', ''),
+                        'id': s['id']
+                    }))
+
+                klassen = []
+                for k in raw_p.get('kl', []):
+                    master_kl = all_kl.get(k['id'], {})
+                    klassen.append(Class.from_dict({
+                        'name': master_kl.get('name', ''),
+                        'longName': master_kl.get('longName', ''),
+                        'id': k['id']
+                    }))
+
+                rooms = []
+                for r in raw_p.get('ro', []):
+                    rid = r.get('id', 0)
+                    master_ro = all_ro.get(rid, {})
+                    rooms.append(Room.from_dict({
+                        'name': master_ro.get('name', ''),
+                        'longName': master_ro.get('longName', ''),
+                        'id': rid
+                    }))
+
+                original_rooms = []
+                for r in raw_p.get('ro', []):
+                    org_id = r.get('orgid')
+                    if org_id:
+                        master_ro = all_ro.get(org_id, {})
+                        original_rooms.append(Room.from_dict({
+                            'name': master_ro.get('name', ''),
+                            'longName': master_ro.get('longName', ''),
+                            'id': org_id
+                        }))
+
+                teachers = [Teacher.from_teacher_id(t['id']) for t in raw_p.get('te', []) if 'id' in t]
+                original_teachers = [Teacher.from_teacher_id(t['orgid']) for t in raw_p.get('te', []) if
+                                     'orgid' in t]
+
+                p = Period(
+                    raw_period_code=raw_p.get('code'),
+                    start=start_dt,
+                    end=end_dt,
+                    subjects=subjects,
+                    klassen=klassen,
+                    rooms=rooms,
+                    original_rooms=original_rooms,
+                    teachers=teachers,
+                    original_teachers=original_teachers,
+                    student_group=raw_p.get('sg', ''),
+                    activity_type=raw_p.get('activityType', ''),
+                    bk_remark=raw_p.get('bkRemark', ''),
+                    bk_text=raw_p.get('bkText', ''),
+                    flags=raw_p.get('flags', ''),
+                    ls_number=raw_p.get('lsnumber', 0),
+                    ls_text=raw_p.get('lstext', ''),
+                    subst_text=raw_p.get('substText', ''),
+                    period_type=raw_p.get('type', ''),
+                    period_id=raw_p.get('id', 0)
+                )
+                periods.append(p)
+            except Exception:
+                continue
+
+        return TimeTable(periods)
 
     @cached_method
     def _search(self, surname: str, fore_name: str, dob: int = 0, what: int = -1) -> typing.Any:
