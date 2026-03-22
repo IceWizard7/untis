@@ -14,7 +14,7 @@
 </div>
 
 <div align="center">
-  <img src="image_examples/example_placeholder.png" alt="Example Image of Untis" width="500">
+  <img src="image_examples/example_placeholder.png" alt="Example Image of Untis" width="250">
 </div>
 <br>
 
