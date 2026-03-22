@@ -37,4 +37,4 @@ where = ["."]
 include = ["untis*"]
 
 [tool.setuptools.package-data]
-untis = ["docs/*", "examples/*", "*.md"]
+untis = ["docs/*", "examples/*", "*.md", "*.pyi", "py.typed"]
