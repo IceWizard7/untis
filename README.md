@@ -1,4 +1,4 @@
-<br/>
+from mypyc.transform.log_trace import get_load_global_name<br/>
 <div align="center">
   <h3 align="center">🕞 Untis</h3>
 
@@ -50,8 +50,14 @@ global_session = untis.objects.Session(
     client='WebUntis Test'
 )
 
+# Safe under concurrency
+call_id = global_session.get_unique_uuid()
+global_session.log_in(call_id)
+
 for klasse in global_session.all_klassen():
     print(klasse.name)
+
+global_session.log_out(call_id)
 ```
 [read more...](docs/index.md)
 
