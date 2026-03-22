@@ -1,13 +1,13 @@
-from examples.credentials import my_logger
+# Session
 
-# `Session`
+---
 
 ## 1. Initializing a Session
 
 ```python
 import untis
 
-my_logger = untis.objects.Logger()
+my_logger = untis.logging.Logger()
 
 my_session = untis.Session(
     # Per-session configuration

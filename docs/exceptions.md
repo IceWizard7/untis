@@ -1,5 +1,7 @@
 # Exceptions & Errors
 
+---
+
 > [!CAUTION]
 > The List of Exceptions will be updated soon.
 

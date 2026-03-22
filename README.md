@@ -1,6 +1,60 @@
-# untis
+<br/>
+<div align="center">
+  <h3 align="center">🕞 Untis</h3>
+
+  <p align="center">
+    Python library for interacting with WebUntis
+    <br />
+    <br />
+    <a href="#1-installation">Installation</a> •
+    <a href="#2-quickstart">Quickstart</a> •
+    <a href="#3-documentation">Documentation</a> •
+    <a href="#4-license">License</a>
+  </p>
+</div>
+
+![Example Image of Untis](image_examples/example_placeholder.png)
+![PyPI Version](https://img.shields.io/pypi/v/untis)
+![Python Versions](https://img.shields.io/pypi/pyversions/untis)
+![License](https://img.shields.io/pypi/l/untis)
+![Downloads (all time)](https://static.pepy.tech/badge/untis)
+![Downloads (last month)](https://static.pepy.tech/badge/untis/month)
 
 > [!CAUTION]
 > More documentation will follow soon.
 
-Python bindings for WebUntis API
+---
+
+## 1. Installation
+
+`pip install untis`
+
+## 2. Quickstart
+
+```python
+import untis
+
+global_session = untis.objects.Session(
+    'global_session',
+    use_cache=False,
+    cache_file=None,
+    logger=None,
+    username='insert_your_username',
+    password='insert_your_password',
+    server='insert-your-school.webuntis.com/WebUntis',
+    school='insert-your-school',
+    client='WebUntis Test'
+)
+
+for klasse in global_session.all_klassen():
+    print(klasse.name)
+```
+[read more...](docs/index.md)
+
+## 3. Documentation
+
+See [Index](docs/index.md) for full usage and API details.
+
+## 4. License
+
+See [License](LICENSE).

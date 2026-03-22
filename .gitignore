@@ -1,5 +1,5 @@
 .DS_Store
 .idea
 .venv
-examples/__pycache__
+script_examples/__pycache__
 untis/__pycache__

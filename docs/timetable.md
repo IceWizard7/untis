@@ -1,4 +1,6 @@
-# `TimeTable`
+# TimeTable
+
+---
 
 ## 1. Receiving `TimeTable`
 

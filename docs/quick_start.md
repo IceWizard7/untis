@@ -1,5 +1,7 @@
 # Quick Start
 
+---
+
 ## 1. Credentials
 
 ```python

@@ -1,4 +1,6 @@
-# Bindings for Untis
+# Bindings for WebUntis API
+
+---
 
 ## Overview
 - [Quick Start](quick_start.md)
