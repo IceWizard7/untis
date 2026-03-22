@@ -1,7 +1,5 @@
 # Configuration
 
----
-
 > [!CAUTION]
 > More documentation will follow soon.
 

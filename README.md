@@ -29,8 +29,6 @@
 > [!CAUTION]
 > More documentation will follow soon.
 
----
-
 ## 1. Installation
 
 `pip install untis`

@@ -1,7 +1,5 @@
 # TimeTable
 
----
-
 ## 1. Receiving `TimeTable`
 
 `Session.timetable_extended()` receives the timetable of a class for a certain time span (can be longer than a week).

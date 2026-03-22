@@ -1,7 +1,5 @@
 # Session
 
----
-
 ## 1. Initializing a Session
 
 ```python
