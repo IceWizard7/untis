@@ -212,7 +212,7 @@ class HTMLStyleConfig:
 
     def set_internal_lang(self, lang: str, language_config: LanguageConfig) -> None:
         # Various HTML functions
-        self.timetable_html_header: str = f"""
+        self.timetable_html_header = f"""
                         <!DOCTYPE html>
                         <html lang="{lang}">
                         <head>
@@ -292,13 +292,13 @@ class HTMLStyleConfig:
                         <body>
                         """
 
-        self.timetable_html_footer_two_week: str = f"""
+        self.timetable_html_footer_two_week = f"""
                 <p style="text-align:center; font-size:15px; margin-top:10px;">
                   {language_config.two_week_abbreviation_legend}
                 </p>
                 """
         # Personal HTML
-        self.personal_timetable_html_header: str = f"""
+        self.personal_timetable_html_header = f"""
                         <!DOCTYPE html>
                         <html lang="{lang}">
                         <head>
@@ -375,9 +375,9 @@ class HTMLStyleConfig:
 
 class Config:
     def __init__(self) -> None:
-        self.timetable_mapping_config = TimeTableMappingConfig()
-        self.language_config = LanguageConfig()
-        self.html_style_config = HTMLStyleConfig()
+        self.timetable_mapping_config: TimeTableMappingConfig = TimeTableMappingConfig()
+        self.language_config: LanguageConfig = LanguageConfig()
+        self.html_style_config: HTMLStyleConfig = HTMLStyleConfig()
 
     def set_lang(self, lang: str) -> None:
         self.language_config.set_internal_lang(lang)
