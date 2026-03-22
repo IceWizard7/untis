@@ -2,16 +2,19 @@ import untis
 from credentials import global_session
 import datetime
 
-call_id = global_session.get_unique_uuid()
-global_session.log_in(call_id)
-
-klasse = global_session.get_klasse_by_name('1a')  # Try '1A' alternatively
+untis.my_config.set_lang('en')
 
 untis.my_config.timetable_html_footer = f"""
 <p style="text-align:center; font-size:20px; margin-top:10px;">
   powered by: This is how to edit `my_config`!
 </p>
 """
+
+call_id = global_session.get_unique_uuid()
+global_session.log_in(call_id)
+
+klasse = global_session.get_klasse_by_name('1a')  # Try '1A' alternatively
+
 
 today = datetime.date.today()
 monday = today - datetime.timedelta(days=today.weekday())
