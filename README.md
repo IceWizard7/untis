@@ -16,6 +16,8 @@
 <div align="center">
   <img src="image_examples/example_placeholder.png" alt="Example Image of Untis" width="500">
 </div>
+<br>
+
 > Note: Teacher names have been replaced with placeholder numbers for privacy.
 
 ![PyPI Version](https://img.shields.io/pypi/v/untis)
