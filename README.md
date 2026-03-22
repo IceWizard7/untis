@@ -14,6 +14,8 @@
 </div>
 
 ![Example Image of Untis](image_examples/example_placeholder.png)
+> Note: Teacher names have been replaced with placeholder numbers for privacy.
+
 ![PyPI Version](https://img.shields.io/pypi/v/untis)
 ![Python Versions](https://img.shields.io/pypi/pyversions/untis)
 ![License](https://img.shields.io/pypi/l/untis)
