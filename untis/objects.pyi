@@ -11,7 +11,7 @@ import uuid
 import pathlib
 import asyncio
 
-from .logging import Logger
+from .logger import Logger
 from .config import Config
 
 

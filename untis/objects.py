@@ -15,8 +15,8 @@ import pathlib
 import asyncio
 import requests
 
-from .exceptions import NotAuthenticatedError, NoRightForMethod, MethodNotFound
-from .logging import Logger
+from .exceptions import NotAuthenticatedError, NoRightForMethodError, MethodNotFoundError, IllegalArgumentError
+from .logger import Logger
 from .config import Config
 
 
@@ -37,7 +37,7 @@ class BaseEntity:
     @classmethod
     def from_dict(cls, data: dict[str, str | int]) -> typing.Self:
         """
-        Construct from a dict with keys: name, long_name, entity_id
+        Construct from a dict with keys: name, longName, id
         """
         return cls(
             name=typing.cast(str, data["name"]),
@@ -160,7 +160,7 @@ class BaseDateEntity:
     @classmethod
     def from_dict(cls, data: dict[str, str | int]) -> typing.Self:
         """
-        Construct from a dict with keys: name, long_name, entity_id
+        Construct from a dict with keys: name, longName, id, startDate, endDate
         """
         def parse_date(value: typing.Optional[int]) -> typing.Optional[datetime.date]:
             if value is None:
@@ -930,9 +930,8 @@ class TimeTable:
                     if period_start_time <= i_start_time <= period_end_time:
                         if period_start_time <= i_end_time <= period_end_time:
                             time: str = (
-                                f'{i_start_time.strftime(
-                                    my_config.html_style_config.lesson_time_ranges_format)} - {i_end_time.strftime(
-                                        my_config.html_style_config.lesson_time_ranges_format)}'
+                                f'{i_start_time.strftime(my_config.html_style_config.lesson_time_ranges_format)} - '
+                                f'{i_end_time.strftime(my_config.html_style_config.lesson_time_ranges_format)}'
                             )
 
                             if time in final_hours[my_config.language_config.weekday_name_mapping[weekday]].keys():
@@ -1238,10 +1237,10 @@ class TimeTable:
             person_name: str
     ) -> str:
         english_weekday: str = target_date.strftime("%A")
-        german_weekday: str = my_config.language_config.weekday_name_mapping[english_weekday]
+        native_weekday: str = my_config.language_config.weekday_name_mapping[english_weekday]
 
-        # Initialise final_hours with german_weekday key!
-        final_hours: dict[str, dict[str, list[Period]]] = {german_weekday: {}}
+        # Initialise final_hours with native_weekday key!
+        final_hours: dict[str, dict[str, list[Period]]] = {native_weekday: {}}
 
         for period in self._periods:
             if period.start.strftime('%A') != english_weekday:
@@ -1254,10 +1253,14 @@ class TimeTable:
             # Convert lesson time ranges to datetime ranges in tuple form
             time_lesson_ranges: list[tuple[datetime.time, datetime.time]] = [
                 (
-                    datetime.datetime.strptime(time_range.split(' - ')[0],
-                                               my_config.html_style_config.lesson_time_ranges_format).time(),
-                    datetime.datetime.strptime(time_range.split(' - ')[1],
-                                               my_config.html_style_config.lesson_time_ranges_format).time()
+                    datetime.datetime.strptime(
+                        time_range.split(' - ')[0],
+                        my_config.html_style_config.lesson_time_ranges_format
+                    ).time(),
+                    datetime.datetime.strptime(
+                        time_range.split(' - ')[1],
+                        my_config.html_style_config.lesson_time_ranges_format
+                    ).time()
                 )
                 for time_range in my_config.html_style_config.lesson_time_ranges
             ]
@@ -1270,10 +1273,10 @@ class TimeTable:
                             f'{i_end_time.strftime(my_config.html_style_config.lesson_time_ranges_format)}'
                         )
 
-                        if time in final_hours[german_weekday].keys():
-                            final_hours[german_weekday][time].append(period)
+                        if time in final_hours[native_weekday].keys():
+                            final_hours[native_weekday][time].append(period)
                         else:
-                            final_hours[german_weekday][time] = [period]
+                            final_hours[native_weekday][time] = [period]
 
         rgb_value: tuple[int, int, int] = my_config.html_style_config.table_header_base_rgb
 
@@ -1302,14 +1305,14 @@ class TimeTable:
             '<table border="1" cellspacing="0" cellpadding="5">',
             f'<tr><th style="background-color: rgb{my_config.html_style_config.table_header_base_rgb};">'
             f'{my_config.language_config.time}</th>',
-            f'<th style="background-color: rgb{rgb_value};">{german_weekday[:2]}</th>',
+            f'<th style="background-color: rgb{rgb_value};">{native_weekday[:2]}</th>',
             '<tr>'
         ]
 
         for count, time_range in enumerate(my_config.html_style_config.lesson_time_ranges):
             self.html_add_lesson_time_range(html, count, time_range)
 
-            lessons: list[Period] = final_hours.get(german_weekday, {}).get(time_range, [])
+            lessons: list[Period] = final_hours.get(native_weekday, {}).get(time_range, [])
             if not lessons:
                 html.append('<td></td>')
                 continue
@@ -1765,9 +1768,9 @@ class Session:
                 else:
                     raise NotAuthenticatedError(data["error"])
             elif "no right for " in data["error"].get("message"):
-                raise NoRightForMethod(data["error"], method)
+                raise NoRightForMethodError(data["error"], method)
             elif "Method not found" in data["error"].get("message"):
-                raise MethodNotFound(data["error"], method)
+                raise MethodNotFoundError(data["error"], method)
             raise RuntimeError(f"WebUntis API Error ({method}): {data['error']}")
 
         return data.get("result")
@@ -2010,14 +2013,31 @@ class Session:
     @cached_method
     def timetable_extended(
             self,
-            klasse: Class,
+            element: Class | Teacher | Subject | Room,
             start: datetime.date,
             end: datetime.date
     ) -> TimeTable:
+        # TODO: Testing needed
+        element_type_table: dict[str, int] = {"klasse": 1, "teacher": 2, "subject": 3, "room": 4, "student": 5}
+        if isinstance(element, Class):
+            element_type: int = element_type_table["klasse"]
+        elif isinstance(element, Teacher):
+            element_type = element_type_table["teacher"]
+        elif isinstance(element, Subject):
+            element_type = element_type_table["subject"]
+        elif isinstance(element, Room):
+            element_type = element_type_table["room"]
+        # TODO: Implement student here too? Not sure how that will work though.
+        else:
+            raise IllegalArgumentError(
+                f"timetable_extended method does not expect value {element} for parameter \"element\"."
+                f" Expected type: Class, Teacher, Subject or Room", "timetable_extended"
+            )
+
         options = {
             "startDate": self._format_date(start),
             "endDate": self._format_date(end),
-            "element": {"id": klasse.entity_id, "type": 1},
+            "element": {"id": element.entity_id, "type": element_type},
             "showBooking": True,
             "showInfo": True,
             "showSubstText": True,
@@ -2178,7 +2198,7 @@ class Session:
 
     @cached_method
     def class_reg_event_for_id(self, start: datetime.date, end: datetime.date, **type_and_id: typing.Any) -> typing.Any:
-        element_type_table = {'klasse': 1, 'teacher': 2, 'subject': 3, 'room': 4, 'student': 5}
+        element_type_table = {"klasse": 1, "teacher": 2, "subject": 3, "room": 4, "student": 5}
         element_type, element_id = list(type_and_id.items())[0]
         params = self._create_date_param(start, end, id=int(element_id), type=element_type_table[element_type])
         return self._rpc_request("getClassregEvents", params)
