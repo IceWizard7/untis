@@ -13,13 +13,19 @@ class NotAuthenticatedError(WebUntisAPIError):
         super().__init__(error, *args)
 
 
-class NoRightForMethod(WebUntisAPIError):
+class NoRightForMethodError(WebUntisAPIError):
     """ No right for method. """
     def __init__(self, error: typing.Any, method_name: str, *args: typing.Any) -> None:
         super().__init__(error, method_name, *args)
 
 
-class MethodNotFound(WebUntisAPIError):
+class MethodNotFoundError(WebUntisAPIError):
     """ Method not found. """
+    def __init__(self, error: typing.Any, method_name: str, *args: typing.Any) -> None:
+        super().__init__(error, method_name, *args)
+
+
+class IllegalArgumentError(WebUntisAPIError):
+    """ Illegal Argument. """
     def __init__(self, error: typing.Any, method_name: str, *args: typing.Any) -> None:
         super().__init__(error, method_name, *args)

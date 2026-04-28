@@ -11,10 +11,14 @@ class NotAuthenticatedError(WebUntisAPIError):
         pass
 
 
-class NoRightForMethod(WebUntisAPIError):
+class NoRightForMethodError(WebUntisAPIError):
     def __init__(self, error: typing.Any, method_name: str, *args: typing.Any) -> None:
         pass
 
-class MethodNotFound(WebUntisAPIError):
+class MethodNotFoundError(WebUntisAPIError):
+    def __init__(self, error: typing.Any, method_name: str, *args: typing.Any) -> None:
+        pass
+
+class IllegalArgumentError(WebUntisAPIError):
     def __init__(self, error: typing.Any, method_name: str, *args: typing.Any) -> None:
         pass
