@@ -29,6 +29,9 @@ from mypyc.transform.log_trace import get_load_global_name<br/>
 > [!CAUTION]
 > More documentation will follow soon.
 
+> [!CAUTION]
+> A [C++ version](https://github.com/IceWizard7/untis-cpp) is also available, which is also being actively developed by me.
+
 ## 1. Installation
 
 `pip install untis`
