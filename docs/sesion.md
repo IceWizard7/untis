@@ -5,7 +5,7 @@
 ```python
 import untis
 
-my_logger = untis.logging.Logger()
+my_logger = untis.logger.Logger()
 
 my_session = untis.Session(
     # Per-session configuration

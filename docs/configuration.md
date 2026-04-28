@@ -12,7 +12,9 @@ Set the language using:
 - `untis.my_config.set_lang('en')`
 - `untis.my_config.set_lang('de')`
 
-Note: Currently only german (`'de'`) and english (`en`) is supported.
+> Note: Currently only german (`'de'`) and english (`en`) is supported and as long as this project only has a single
+maintainer, this will not be changed. You can always make a PR, implement this offline, or manually modify the fields.
+For example `untis.my_config.language_config.tomorrow` could also be set directly.
 
 ### 1.2 Understanding the objects
 
@@ -31,6 +33,9 @@ For example:
 - `untis.my_config.timetable_mapping_config.teacher_mapping = ...`
 - ...
 
+> Note: I won't list every attribute here. You can go through the code base and read the manually. Additionally,
+there are a lot of comments in the configuration file. If you need more info on anything, first try reading the
+source code yourself. 
 
 ## 2. Timetable mappings
 
@@ -69,7 +74,7 @@ support it.
 > [!CAUTION]
 > More documentation will follow soon.
 
-Generating this mapping is rather tedious, but the first step is getting the IDs.
+Generating this mapping is rather tedious, but the first step is getting the element IDs.
 See [2.1 Generating element IDs](#21-generating-element-ids) for help.
 
 Example `subject_to_color`
@@ -84,7 +89,7 @@ untis.my_config.timetable_mapping_config.subject_to_color: dict[tuple[str, str, 
 This allows the TimeTable to display corresponding colours along with the subject names.
 The API technically delivers this, but I'm still uncertain whether this is safe to use.
 
-Generating this mapping is rather tedious, but the first step is getting the IDs.
+Generating this mapping is rather tedious, but the first step is getting the element IDs.
 See [2.1 Generating element IDs](#21-generating-element-ids) for help.
 
 Also see [config.py](../untis/config.py) for more info on `TimeTableMappingConfig`.

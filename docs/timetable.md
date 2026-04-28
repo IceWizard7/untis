@@ -18,7 +18,7 @@ You can filter a `TimeTable` using:
 - `filter_hours_by_personal(name: str) -> None`
 (Requires setting up `personal_timetable_entries` in `config`, also see the [Configuration Guide](configuration.md))
 
-Note that most of these functions return None. These modify the `TimeTable` object in-place, similarly to how
+> Note: Most of these functions return None. They modify the `TimeTable` object in-place, similarly to how
 `list.append()`modifies the `list` Object in-place.
 
 ### 2.2 Converting to HTML
