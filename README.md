@@ -1,4 +1,3 @@
-from mypyc.transform.log_trace import get_load_global_name<br/>
 <div align="center">
   <h3 align="center">🕞 Untis</h3>
 
