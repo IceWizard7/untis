@@ -17,7 +17,7 @@ import requests
 
 from .exceptions import NotAuthenticatedError, NoRightForMethodError, MethodNotFoundError, IllegalArgumentError
 from .logger import Logger
-from .config import Config
+from .config import Config, my_config
 
 
 @dataclasses.dataclass(frozen=True)
@@ -2458,8 +2458,3 @@ class Session:
             self.log_out(call_id)
 
         return raw_result
-
-
-# Configuration
-my_config: Config = Config()
-my_config.set_lang('en')  # Default
