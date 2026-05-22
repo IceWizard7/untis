@@ -3,3 +3,4 @@
 .venv
 script_examples/__pycache__
 untis/__pycache__
+*.egg-info/
