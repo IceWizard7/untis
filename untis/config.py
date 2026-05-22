@@ -311,29 +311,83 @@ class HTMLStyleConfig:
                                     margin: 20mm;
                                 }}
 
-                                body {{
-                                    font-family: monospace;
+                                * {{
+                                    box-sizing: border-box;
                                 }}
 
-                                p {{
+                                html {{
+                                    height: 100%;
+                                }}
+
+                                body {{
+                                    font-family: monospace;
+                                    min-height: 100vh;
+                                    margin: 0;
+                                    display: flex;
+                                    flex-direction: column;
+                                }}
+
+                                .personal-timetable-page {{
+                                    flex: 1 1 auto;
+                                    min-height: 0;
+                                    width: 100%;
+                                    display: flex;
+                                    flex-direction: column;
+                                    gap: 12px;
+                                    padding: 12px;
+                                }}
+
+                                .personal-timetable-nav {{
+                                    flex: 0 0 auto;
                                     text-align: center;
                                     font-size: 13px;
-                                    margin-top: 10px;
+                                }}
+
+                                .personal-timetable-nav-row {{
+                                    display: grid;
+                                    grid-template-columns: auto minmax(0, 1fr) auto;
+                                    align-items: center;
+                                    gap: 8px;
+                                }}
+
+                                .personal-timetable-nav-row a:first-child {{
+                                    justify-self: start;
+                                }}
+
+                                .personal-timetable-nav-row a:last-child {{
+                                    justify-self: end;
+                                }}
+
+                                .personal-timetable-title {{
+                                    min-width: 0;
+                                    text-align: center;
+                                    overflow-wrap: anywhere;
+                                }}
+
+                                .personal-timetable-today-row {{
+                                    margin-top: 8px;
+                                }}
+
+                                .personal-timetable-table-wrap {{
+                                    flex: 1 1 auto;
+                                    min-height: 0;
+                                    width: 100%;
+                                    overflow: auto;
                                 }}
 
                                 table {{
                                     border-collapse: separate;
                                     border-spacing: 0;
-                                    margin: 30px auto;
                                     table-layout: fixed;
                                     font-size: 10pt;
-                                    width: auto;
+                                    width: 100%;
+                                    height: 100%;
                                     box-shadow: 0 0 10px rgba(0,0,0,0.1);
                                 }}
 
                                 th, td {{
                                     border: 1px solid #ddd;
-                                    padding: 8px 14px;
+                                    padding: 6px 10px;
                                     text-align: center;
                                 }}
 
@@ -346,7 +400,6 @@ class HTMLStyleConfig:
                                     vertical-align: middle;
                                     position: relative;
                                     overflow: hidden;
-                                    height: 30px;
                                     z-index: 0;
                                 }}
 

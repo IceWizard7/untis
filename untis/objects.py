@@ -1285,23 +1285,29 @@ class TimeTable:
 
         html: list[str] = [
             my_config.html_style_config.personal_timetable_html_header,
-            '<p>',
+            '<main class="personal-timetable-page">',
+            '<nav class="personal-timetable-nav">',
+            '<div class="personal-timetable-nav-row">',
 
             f'<a href="?date={(target_date - datetime.timedelta(days=1)).strftime("%d-%m-%Y")}">'
             f'<button>{my_config.language_config.yesterday}</button></a>',
 
-            f'{my_config.language_config.personal_timetable} {person_name} ({target_date.strftime("%d.%m.%Y")})',
+            f'<span class="personal-timetable-title">'
+            f'{my_config.language_config.personal_timetable} {person_name} ({target_date.strftime("%d.%m.%Y")})'
+            f'</span>',
 
             f'<a href="?date={(target_date + datetime.timedelta(days=1)).strftime("%d-%m-%Y")}">'
             f'<button>{my_config.language_config.tomorrow}</button></a>',
 
-            '</p>',
-            '<p>',
+            '</div>',
+            '<div class="personal-timetable-today-row">',
 
             f'<a href="?date={(datetime.datetime.today()).strftime("%d-%m-%Y")}">'
             f'<button>{my_config.language_config.today}</button></a>',
 
-            '</p>',
+            '</div>',
+            '</nav>',
+            '<div class="personal-timetable-table-wrap">',
             '<table border="1" cellspacing="0" cellpadding="5">',
             f'<tr><th style="background-color: rgb{my_config.html_style_config.table_header_base_rgb};">'
             f'{my_config.language_config.time}</th>',
@@ -1415,6 +1421,8 @@ class TimeTable:
             html.append('</tr>')
 
         html.append('</table>')
+        html.append('</div>')
+        html.append('</main>')
 
         html.append(my_config.html_style_config.personal_timetable_html_footer)
 
