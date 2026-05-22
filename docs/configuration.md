@@ -5,6 +5,11 @@
 
 ## 1. Editing `my_config`
 
+> [!CAUTION]
+> When cloning this repo instead of installing it via PyPI, update the package's `config.py` directly.
+> Writing a separate `config.py` will not affect the package unless you explicitly load it.
+> Always pay attention to import order.
+
 ### 1.1 Setting the language
 
 Set the language using:
