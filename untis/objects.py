@@ -2364,7 +2364,7 @@ class Session:
         for attempt in range(max_attempts):
             try:
                 self.log_in(call_id)
-                table: TimeTable = self.timetable_extended(klasse=klasse, start=start, end=end)
+                table: TimeTable = self.timetable_extended(klasse, start=start, end=end)
                 entry = {klasse.name: {'table': table}}
                 error_entry = None
                 break
