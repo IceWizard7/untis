@@ -437,8 +437,3 @@ class Config:
 
         # Also pass language_config directly; DRY rule
         self.html_style_config.set_internal_lang(lang, self.language_config)
-
-
-# Configuration
-my_config: Config = Config()
-my_config.set_lang('en')  # Default

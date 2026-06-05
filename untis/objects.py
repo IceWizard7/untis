@@ -17,7 +17,7 @@ import requests
 
 from .exceptions import NotAuthenticatedError, NoRightForMethodError, MethodNotFoundError, IllegalArgumentError
 from .logger import Logger
-from .config import Config, my_config
+from .config import Config
 
 
 @dataclasses.dataclass(frozen=True)
@@ -1234,17 +1234,30 @@ class TimeTable:
             self,
             featuring_object: Class | Room | Teacher,
             target_date: datetime.date,
-            person_name: str
+            person_name: str,
+            n_days: int = 1
     ) -> str:
-        english_weekday: str = target_date.strftime("%A")
-        native_weekday: str = my_config.language_config.weekday_name_mapping[english_weekday]
+        # english_weekday: str = target_date.strftime("%A")
+        english_weekdays: list[str] = list(dict.fromkeys([
+            (target_date + datetime.timedelta(days=i)).strftime('%A')
+            for i in range(min(n_days, 7))
+        ]))
+        native_weekdays: list[str] = list(dict.fromkeys([
+            my_config.language_config.weekday_name_mapping[english_weekday]
+            for english_weekday in english_weekdays
+        ]))
 
         # Initialise final_hours with native_weekday key!
-        final_hours: dict[str, dict[str, list[Period]]] = {native_weekday: {}}
+        final_hours: dict[str, dict[str, list[Period]]] = {
+            native_weekday: {}
+            for native_weekday in native_weekdays
+        }
 
         for period in self._periods:
-            if period.start.strftime('%A') != english_weekday:
+            if period.start.strftime('%A') not in english_weekdays:
                 continue
+            english_weekday: str = period.start.strftime('%A')
+            native_weekday: str = my_config.language_config.weekday_name_mapping[english_weekday]
 
             # Actual start & end time, ex. 08:40 & 09:35, or irregular times: 00:00 & 23:59 (in one lesson)
             period_start_time: datetime.time = period.start.time()
@@ -1293,7 +1306,9 @@ class TimeTable:
             f'<button>{my_config.language_config.yesterday}</button></a>',
 
             f'<span class="personal-timetable-title">'
-            f'{my_config.language_config.personal_timetable} {person_name} ({target_date.strftime("%d.%m.%Y")})'
+            f'{my_config.language_config.personal_timetable} {person_name}'
+            f' ({my_config.language_config.weekday_name_mapping[target_date.strftime('%A')][:2]}'
+            f' {target_date.strftime("%d.%m.%Y")})'
             f'</span>',
 
             f'<a href="?date={(target_date + datetime.timedelta(days=1)).strftime("%d-%m-%Y")}">'
@@ -1311,113 +1326,115 @@ class TimeTable:
             '<table border="1" cellspacing="0" cellpadding="5">',
             f'<tr><th style="background-color: rgb{my_config.html_style_config.table_header_base_rgb};">'
             f'{my_config.language_config.time}</th>',
-            f'<th style="background-color: rgb{rgb_value};">{native_weekday[:2]}</th>',
+            *[f'<th style="background-color: rgb{rgb_value};">{native_weekday[:2]}</th>'
+              for native_weekday in native_weekdays],
             '<tr>'
         ]
 
         for count, time_range in enumerate(my_config.html_style_config.lesson_time_ranges):
             self.html_add_lesson_time_range(html, count, time_range)
 
-            lessons: list[Period] = final_hours.get(native_weekday, {}).get(time_range, [])
-            if not lessons:
-                html.append('<td></td>')
-                continue
+            for native_weekday in native_weekdays:
+                lessons: list[Period] = final_hours.get(native_weekday, {}).get(time_range, [])
+                if not lessons:
+                    html.append('<td></td>')
+                    continue
 
-            distinct_lessons_list_formatted: set[tuple[str, str, str, datetime.datetime, datetime.datetime]] = set()
+                distinct_lessons_list_formatted: set[tuple[str, str, str, datetime.datetime, datetime.datetime]] = set()
 
-            for lesson in lessons:
-                list_formatted: tuple[str, str, str, datetime.datetime, datetime.datetime] = (
-                    lesson.formatted_list(featuring_object, False)
-                )
-                if list_formatted not in distinct_lessons_list_formatted:
-                    distinct_lessons_list_formatted.add(list_formatted)
-
-            formatted_lessons: list[str] = []
-            seen_lesson_strings: set[str] = set()
-
-            for lesson in lessons:
-                lesson_code: str
-                rows_changed: tuple[bool, bool]
-                lesson_code, rows_changed = lesson.get_period_code(featuring_object)
-
-                list_formatted = lesson.formatted_list(featuring_object, False)
-                string_formatted = lesson.formatted_string(featuring_object, False)
-
-                text_color: str = ''
-
-                if lesson_code == 'missed':
-                    text_color = 'color: #D32F2F;'
-                elif lesson_code == 'extra':
-                    text_color = 'color: #2E7D32;'
-
-                short_subject_name_text_color: str = text_color
-                if rows_changed[0] or rows_changed[1]:
-                    if text_color == '':
-                        short_subject_name_text_color = 'color: #F9A825;'
-
-                formatted_lesson: str = '<br>'.join([
-                    f'<span>{list_formatted[0]}</span>',
-
-                    f'<span{" style= \"color: #F9A825;\" " if rows_changed[0] and lesson_code == 'regular' else ""}'
-                    f'>[{list_formatted[1]}]</span>',
-
-                    f'<span{" style= \"color: #F9A825;\" " if rows_changed[1] and lesson_code == 'regular' else ""}'
-                    f'>({list_formatted[2]})</span>'
-                ])
-
-                # Render lesson
-                if len(lessons) == 1:
-                    formatted_lessons.append(
-                        f'<span style="display:inline-block; margin-right:5px; vertical-align: top;'
-                        f' margin-left:5px; {text_color}">{formatted_lesson}</span>'
+                for lesson in lessons:
+                    list_formatted: tuple[str, str, str, datetime.datetime, datetime.datetime] = (
+                        lesson.formatted_list(featuring_object, False)
                     )
-                else:
-                    if string_formatted in seen_lesson_strings:
-                        continue
-                    seen_lesson_strings.add(string_formatted)
+                    if list_formatted not in distinct_lessons_list_formatted:
+                        distinct_lessons_list_formatted.add(list_formatted)
 
-                    if len(distinct_lessons_list_formatted) < 5:  # Num lessons
-                        formatted_lessons.append(
-                            f'<span style="display:inline-block; margin-right:1px; vertical-align: top;'
-                            f' margin-left:1px; {text_color}">{formatted_lesson}</span>'
-                        )
-                    else:
+                formatted_lessons: list[str] = []
+                seen_lesson_strings: set[str] = set()
+
+                for lesson in lessons:
+                    lesson_code: str
+                    rows_changed: tuple[bool, bool]
+                    lesson_code, rows_changed = lesson.get_period_code(featuring_object)
+
+                    list_formatted = lesson.formatted_list(featuring_object, False)
+                    string_formatted = lesson.formatted_string(featuring_object, False)
+
+                    text_color: str = ''
+
+                    if lesson_code == 'missed':
+                        text_color = 'color: #D32F2F;'
+                    elif lesson_code == 'extra':
+                        text_color = 'color: #2E7D32;'
+
+                    short_subject_name_text_color: str = text_color
+                    if rows_changed[0] or rows_changed[1]:
+                        if text_color == '':
+                            short_subject_name_text_color = 'color: #F9A825;'
+
+                    formatted_lesson: str = '<br>'.join([
+                        f'<span>{list_formatted[0]}</span>',
+
+                        f'<span{" style= \"color: #F9A825;\" " if rows_changed[0] and lesson_code == 'regular' else ""}'
+                        f'>[{list_formatted[1]}]</span>',
+
+                        f'<span{" style= \"color: #F9A825;\" " if rows_changed[1] and lesson_code == 'regular' else ""}'
+                        f'>({list_formatted[2]})</span>'
+                    ])
+
+                    # Render lesson
+                    if len(lessons) == 1:
                         formatted_lessons.append(
                             f'<span style="display:inline-block; margin-right:5px; vertical-align: top;'
-                            f' margin-left:5px; {short_subject_name_text_color}">{list_formatted[0]}</span>'
+                            f' margin-left:5px; {text_color}">{formatted_lesson}</span>'
                         )
+                    else:
+                        if string_formatted in seen_lesson_strings:
+                            continue
+                        seen_lesson_strings.add(string_formatted)
 
-            # Stripe colour (based on first eligible subject / fallback to first subject)
-            rgba_value: tuple[int, int, int] = (255, 255, 255)
+                        if len(distinct_lessons_list_formatted) < 5:  # Num lessons
+                            formatted_lessons.append(
+                                f'<span style="display:inline-block; margin-right:1px; vertical-align: top;'
+                                f' margin-left:1px; {text_color}">{formatted_lesson}</span>'
+                            )
+                        else:
+                            formatted_lessons.append(
+                                f'<span style="display:inline-block; margin-right:5px; vertical-align: top;'
+                                f' margin-left:5px; {short_subject_name_text_color}">{list_formatted[0]}</span>'
+                            )
 
-            # Collect eligible subjects (None or irregular)
-            eligible_subjects: list[Subject] = []
+                # Stripe colour (based on first eligible subject / fallback to first subject)
+                rgba_value: tuple[int, int, int] = (255, 255, 255)
 
-            for lesson in lessons:
-                if lesson.get_period_code(featuring_object)[0] not in ('regular', 'extra'):
-                    continue
-                if not lesson.subjects:
-                    continue
-                subject_object: Subject = lesson.subjects[0]
-                eligible_subjects.append(subject_object)
+                # Collect eligible subjects (None or irregular)
+                eligible_subjects: list[Subject] = []
 
-            # Pick first alphabetical eligible subject
-            if eligible_subjects:
-                eligible_subjects.sort(key=lambda item: item.name)
-                chosen_subject: Subject | None = eligible_subjects[0]
-            else:
-                try:
-                    chosen_subject = lessons[0].subjects[0]
-                except IndexError:
-                    chosen_subject = None
+                for lesson in lessons:
+                    if lesson.get_period_code(featuring_object)[0] not in ('regular', 'extra'):
+                        continue
+                    if not lesson.subjects:
+                        continue
+                    subject_object: Subject = lesson.subjects[0]
+                    eligible_subjects.append(subject_object)
 
-            if chosen_subject:
-                rgba_value = chosen_subject.color
+                # Pick first alphabetical eligible subject
+                if eligible_subjects:
+                    eligible_subjects.sort(key=lambda item: item.name)
+                    chosen_subject: Subject | None = eligible_subjects[0]
+                else:
+                    try:
+                        chosen_subject = lessons[0].subjects[0]
+                    except IndexError:
+                        chosen_subject = None
 
-            html.append(
-                f'<td style="--stripe-color: rgba{rgba_value}; white-space: nowrap;">'
-                f'{"".join(formatted_lessons)}</td>'
-            )
+                if chosen_subject:
+                    rgba_value = chosen_subject.color
+
+                html.append(
+                    f'<td style="--stripe-color: rgba{rgba_value}; white-space: nowrap;">'
+                    f'{"".join(formatted_lessons)}</td>'
+                )
             html.append('</tr>')
 
         html.append('</table>')
@@ -2458,3 +2475,8 @@ class Session:
             self.log_out(call_id)
 
         return raw_result
+
+
+# Configuration
+my_config: Config = Config()
+my_config.set_lang('en')  # Default
