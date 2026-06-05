@@ -1,8 +1,7 @@
 from untis import objects
 from untis import exceptions
 from untis import logger
-from untis.config import my_config
-from untis.objects import Session
+from untis.objects import Session, my_config
 
 __all__: list[str] = [
     'objects',
