@@ -624,3 +624,5 @@ class Session:
             max_attempts: int
     ) -> dict[str, str | Exception | dict[str, TimeTable]]:
         pass
+
+my_config: Config = ...

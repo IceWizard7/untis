@@ -59,5 +59,3 @@ class Config:
 
     def set_lang(self, lang: str) -> None:
         pass
-
-my_config: Config = ...
